@@ -43,7 +43,8 @@
                 return;
             }
 
-            const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+            // Using the CORS proxy (allorigins.win) to avoid CORS issues
+            const url = `https://api.allorigins.win/raw?url=http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
             try {
                 const response = await fetch(url);
@@ -94,5 +95,6 @@
     </script>
 </body>
 </html>
+
 
 
