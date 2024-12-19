@@ -1,14 +1,18 @@
 import requests
+from flask import Flask, render_template, request
 
+app = Flask(__name__)
+
+# Get the weather data using the OpenWeatherMap API
 def get_weather_data(api_key, city):
     url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric'
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error fetching weather data: {response.status_code}")
         return None
 
+# Function to get clothing recommendation based on temperature
 def get_clothing_recommendation(temperature, weather_conditions):
     # Clothing recommendations based on temperature
     if temperature < 0:
@@ -28,25 +32,30 @@ def get_clothing_recommendation(temperature, weather_conditions):
             return "Wear a light t-shirt and shorts, but bring an umbrella."
         return "Wear a tank top and shorts, and sandals."
 
-def clothing_decision(api_key, city):
-    # Get the weather data
+# Home route for the web app
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+# Route to process the city input and show clothing recommendation
+@app.route('/get_clothing', methods=['POST'])
+def get_clothing():
+    city = request.form['city']
+    api_key = 'your_openweathermap_api_key'  # Replace with your OpenWeatherMap API key
+    
     weather_data = get_weather_data(api_key, city)
     
     if weather_data:
-        # Extracting temperature and weather conditions
         temperature = weather_data['main']['temp']
         weather_conditions = [condition['main'].lower() for condition in weather_data['weather']]
-        
-        # Get clothing recommendation based on weather data
         recommendation = get_clothing_recommendation(temperature, weather_conditions)
         
-        # Print the recommendation
-        print(f"Weather in {city}: {temperature}°C, Conditions: {', '.join(weather_conditions)}")
-        print("Recommendation: " + recommendation)
+        # Return the result to the user
+        return render_template('result.html', city=city, temperature=temperature, 
+                               weather_conditions=weather_conditions, recommendation=recommendation)
+    else:
+        return render_template('error.html', city=city)
 
-# Replace with your API key and preferred city
-api_key = 'your_openweathermap_api_key'
-city = 'New York'
+if __name__ == '__main__':
+    app.run(debug=True)
 
-# Run the clothing decision assistant
-clothing_decision(api_key, city)
