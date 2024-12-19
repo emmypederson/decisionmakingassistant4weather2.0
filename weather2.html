@@ -1,61 +1,98 @@
-import requests
-from flask import Flask, render_template, request
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Decision Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clothing Decision Assistant</h1>
+    <label for="city">Enter City:</label>
+    <input type="text" id="city" name="city" placeholder="City Name" required>
+    <button onclick="getClothingRecommendation()">Get Clothing Recommendation</button>
 
-app = Flask(__name__)
+    <div class="result" id="result"></div>
 
-# Get the weather data using the OpenWeatherMap API
-def get_weather_data(api_key, city):
-    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric'
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return None
+    <script>
+        async function getClothingRecommendation() {
+            const apiKey = 'your_openweathermap_api_key';  // Replace with your OpenWeatherMap API key
+            const city = document.getElementById('city').value.trim();
+            const resultDiv = document.getElementById('result');
 
-# Function to get clothing recommendation based on temperature
-def get_clothing_recommendation(temperature, weather_conditions):
-    # Clothing recommendations based on temperature
-    if temperature < 0:
-        return "Wear a heavy winter jacket, gloves, and boots."
-    elif 0 <= temperature < 10:
-        return "Wear a warm jacket, gloves, and boots or tennis shoes."
-    elif 10 <= temperature < 20:
-        if 'rain' in weather_conditions:
-            return "Wear a waterproof jacket and boots, and consider an umbrella."
-        return "Wear a sweatshirt or light jacket with pants or jeans."
-    elif 20 <= temperature < 30:
-        if 'rain' in weather_conditions:
-            return "Wear a light jacket or t-shirt and carry an umbrella."
-        return "Wear a t-shirt or tank top with shorts or light pants."
-    else:  # temperature >= 30
-        if 'rain' in weather_conditions:
-            return "Wear a light t-shirt and shorts, but bring an umbrella."
-        return "Wear a tank top and shorts, and sandals."
+            if (!city) {
+                resultDiv.innerHTML = '<p>Please enter a city name.</p>';
+                return;
+            }
 
-# Home route for the web app
-@app.route('/')
-def home():
-    return render_template('index.html')
+            const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
-# Route to process the city input and show clothing recommendation
-@app.route('/get_clothing', methods=['POST'])
-def get_clothing():
-    city = request.form['city']
-    api_key = 'your_openweathermap_api_key'  # Replace with your OpenWeatherMap API key
-    
-    weather_data = get_weather_data(api_key, city)
-    
-    if weather_data:
-        temperature = weather_data['main']['temp']
-        weather_conditions = [condition['main'].lower() for condition in weather_data['weather']]
-        recommendation = get_clothing_recommendation(temperature, weather_conditions)
-        
-        # Return the result to the user
-        return render_template('result.html', city=city, temperature=temperature, 
-                               weather_conditions=weather_conditions, recommendation=recommendation)
-    else:
-        return render_template('error.html', city=city)
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-if __name__ == '__main__':
-    app.run(debug=True)
+                if (data.cod === 200) {
+                    const temperature = data.main.temp;
+                    const weatherConditions = data.weather.map(condition => condition.main.toLowerCase());
+                    const recommendation = getClothingRecommendationByWeather(temperature, weatherConditions);
+
+                    resultDiv.innerHTML = `
+                        <h2>Weather in ${city}</h2>
+                        <p>Temperature: ${temperature}°C</p>
+                        <p>Conditions: ${weatherConditions.join(', ')}</p>
+                        <h3>Clothing Recommendation:</h3>
+                        <p>${recommendation}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p>Couldn't find weather data for "${city}". Please try again.</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        function getClothingRecommendationByWeather(temperature, weatherConditions) {
+            if (temperature < 0) {
+                return "Wear a heavy winter jacket, gloves, and boots.";
+            } else if (temperature >= 0 && temperature < 10) {
+                return "Wear a warm jacket, gloves, and boots or tennis shoes.";
+            } else if (temperature >= 10 && temperature < 20) {
+                if (weatherConditions.includes('rain')) {
+                    return "Wear a waterproof jacket and boots, and consider an umbrella.";
+                }
+                return "Wear a sweatshirt or light jacket with pants or jeans.";
+            } else if (temperature >= 20 && temperature < 30) {
+                if (weatherConditions.includes('rain')) {
+                    return "Wear a light jacket or t-shirt and carry an umbrella.";
+                }
+                return "Wear a t-shirt or tank top with shorts or light pants.";
+            } else {
+                if (weatherConditions.includes('rain')) {
+                    return "Wear a light t-shirt and shorts, but bring an umbrella.";
+                }
+                return "Wear a tank top and shorts, and sandals.";
+            }
+        }
+    </script>
+</body>
+</html>
+
 
