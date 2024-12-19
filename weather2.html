@@ -1,0 +1,52 @@
+import requests
+
+def get_weather_data(api_key, city):
+    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching weather data: {response.status_code}")
+        return None
+
+def get_clothing_recommendation(temperature, weather_conditions):
+    # Clothing recommendations based on temperature
+    if temperature < 0:
+        return "Wear a heavy winter jacket, gloves, and boots."
+    elif 0 <= temperature < 10:
+        return "Wear a warm jacket, gloves, and boots or tennis shoes."
+    elif 10 <= temperature < 20:
+        if 'rain' in weather_conditions:
+            return "Wear a waterproof jacket and boots, and consider an umbrella."
+        return "Wear a sweatshirt or light jacket with pants or jeans."
+    elif 20 <= temperature < 30:
+        if 'rain' in weather_conditions:
+            return "Wear a light jacket or t-shirt and carry an umbrella."
+        return "Wear a t-shirt or tank top with shorts or light pants."
+    else:  # temperature >= 30
+        if 'rain' in weather_conditions:
+            return "Wear a light t-shirt and shorts, but bring an umbrella."
+        return "Wear a tank top and shorts, and sandals."
+
+def clothing_decision(api_key, city):
+    # Get the weather data
+    weather_data = get_weather_data(api_key, city)
+    
+    if weather_data:
+        # Extracting temperature and weather conditions
+        temperature = weather_data['main']['temp']
+        weather_conditions = [condition['main'].lower() for condition in weather_data['weather']]
+        
+        # Get clothing recommendation based on weather data
+        recommendation = get_clothing_recommendation(temperature, weather_conditions)
+        
+        # Print the recommendation
+        print(f"Weather in {city}: {temperature}°C, Conditions: {', '.join(weather_conditions)}")
+        print("Recommendation: " + recommendation)
+
+# Replace with your API key and preferred city
+api_key = 'your_openweathermap_api_key'
+city = 'New York'
+
+# Run the clothing decision assistant
+clothing_decision(api_key, city)
