@@ -22,6 +22,10 @@
             margin: 10px 0;
             width: 100%;
         }
+        #loading {
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +34,7 @@
     <input type="text" id="city" name="city" placeholder="City Name" required>
     <button onclick="getClothingRecommendation()">Get Clothing Recommendation</button>
 
+    <div id="loading">Loading...</div>
     <div class="result" id="result"></div>
 
     <script>
@@ -37,11 +42,16 @@
             const apiKey = 'your_openweathermap_api_key';  // Replace with your OpenWeatherMap API key
             const city = document.getElementById('city').value.trim();
             const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
 
             if (!city) {
                 resultDiv.innerHTML = '<p>Please enter a city name.</p>';
                 return;
             }
+
+            // Show loading indicator
+            loadingDiv.style.display = 'block';
+            resultDiv.innerHTML = ''; // Clear previous results
 
             // Using the CORS proxy (allorigins.win) to avoid CORS issues
             const url = `https://api.allorigins.win/raw?url=http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
@@ -49,6 +59,9 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+
+                // Hide loading indicator
+                loadingDiv.style.display = 'none';
 
                 if (data.cod === 200) {
                     const temperature = data.main.temp;
@@ -66,6 +79,8 @@
                     resultDiv.innerHTML = `<p>Couldn't find weather data for "${city}". Please try again.</p>`;
                 }
             } catch (error) {
+                // Hide loading indicator
+                loadingDiv.style.display = 'none';
                 resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
             }
         }
@@ -87,14 +102,4 @@
                 return "Wear a t-shirt or tank top with shorts or light pants.";
             } else {
                 if (weatherConditions.includes('rain')) {
-                    return "Wear a light t-shirt and shorts, but bring an umbrella.";
-                }
-                return "Wear a tank top and shorts, and sandals.";
-            }
-        }
-    </script>
-</body>
-</html>
-
-
-
+                    return "Wear a light t-shirt and shorts, but b
