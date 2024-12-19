@@ -53,8 +53,11 @@
             loadingDiv.style.display = 'block';
             resultDiv.innerHTML = ''; // Clear previous results
 
+            // Encode the city name for the URL
+            const encodedCity = encodeURIComponent(city);
+
             // Using the CORS proxy (allorigins.win) to avoid CORS issues
-            const url = `https://api.allorigins.win/raw?url=http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+            const url = `https://api.allorigins.win/raw?url=http://api.openweathermap.org/data/2.5/weather?q=${encodedCity}&appid=${apiKey}&units=metric`;
 
             try {
                 const response = await fetch(url);
@@ -76,7 +79,7 @@
                         <p>${recommendation}</p>
                     `;
                 } else {
-                    resultDiv.innerHTML = `<p>Couldn't find weather data for "${city}". Please try again.</p>`;
+                    resultDiv.innerHTML = `<p>Couldn't find weather data for "${city}". ${data.message || "Please try again."}</p>`;
                 }
             } catch (error) {
                 // Hide loading indicator
@@ -102,4 +105,12 @@
                 return "Wear a t-shirt or tank top with shorts or light pants.";
             } else {
                 if (weatherConditions.includes('rain')) {
-                    return "Wear a light t-shirt and shorts, but b
+                    return "Wear a light t-shirt and shorts, but bring an umbrella.";
+                }
+                return "Wear a tank top and shorts, and sandals.";
+            }
+        }
+    </script>
+</body>
+</html
+
